@@ -4,10 +4,16 @@ import (
 	"context"
 
 	"github.com/dexidp/dex/storage"
+	"github.com/dexidp/dex/storage/ent/schema"
 )
 
 // CreateClient saves provided oauth2 client settings into the database.
 func (d *Database) CreateClient(ctx context.Context, client storage.Client) error {
+
+	samlDbSchema := schema.SAMLInitiated{
+		Scopes:      client.SAMLInitiated.Scopes,
+		RedirectURI: client.SAMLInitiated.RedirectURI,
+	}
 	_, err := d.client.OAuth2Client.Create().
 		SetID(client.ID).
 		SetName(client.Name).
@@ -16,7 +22,8 @@ func (d *Database) CreateClient(ctx context.Context, client storage.Client) erro
 		SetLogoURL(client.LogoURL).
 		SetRedirectUris(client.RedirectURIs).
 		SetTrustedPeers(client.TrustedPeers).
-		Save(ctx)
+		SetSamlInitiated(samlDbSchema).
+		Save(context.TODO())
 	if err != nil {
 		return convertDBError("create oauth2 client: %w", err)
 	}
